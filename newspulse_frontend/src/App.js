@@ -101,7 +101,7 @@ function App() {
       <main className="main-content-area" style={{ flex: 1, marginTop: 88, marginBottom: 64, transition: 'background 0.2s' }}>
         {activeTab === 'home' && !selectedNewsId && (
           <NewsFeed
-            news={newsFeed}
+            news={displayedNews}
             selectedCategories={selectedCategories}
             onSelect={setSelectedNewsId}
             bookmarked={bookmarked}
@@ -112,7 +112,8 @@ function App() {
 
         {activeTab === 'home' && selectedNewsId && (
           <ArticleDetail
-            article={newsFeed.find(n => n.id === selectedNewsId)}
+            // Use allNews to allow showing details even if filtered out of displayedNews
+            article={allNews.find(n => n.id === selectedNewsId)}
             onBack={() => setSelectedNewsId(null)}
             bookmarked={bookmarked}
             setBookmarked={setBookmarked}
@@ -122,7 +123,7 @@ function App() {
 
         {activeTab === 'bookmarks' && (
           <BookmarkedArticles
-            news={newsFeed}
+            news={allNews}
             bookmarks={bookmarked}
             onSelect={setSelectedNewsId}
             setBookmarked={setBookmarked}
@@ -255,19 +256,17 @@ function CategoryFilterBar({ categories, selected, setSelected, darkMode }) {
  * NewsFeed now supports expandable article cards with inline AI summary.
  * Handles 'Summarize' button for each card, showing full content & summary.
  */
+/**
+ * NewsFeed: Renders the supplied (already filtered) list of articles.
+ * Filtering is done by parent component.
+ */
 function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarked, darkMode }) {
   const [expandedId, setExpandedId] = React.useState(null);
   const [loadingSummaryId, setLoadingSummaryId] = React.useState(null);
   const [summaries, setSummaries] = React.useState({});
 
-  // Filter by selected categories (stub logic: filters by presence in title)
-  const filteredNews = selectedCategories.includes('All')
-    ? news
-    : news.filter(article =>
-        selectedCategories.some(cat =>
-          article.title.toLowerCase().includes(cat.toLowerCase())
-        )
-      );
+  // (Filtering is now done in parent, so just use news prop)
+  const filteredNews = news;
 
   // Stubbed summary fetch, replace with real API call in future
   const fetchSummary = async (article) => {
