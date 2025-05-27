@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ArticleDetail from "./ArticleDetail";
+import CustomSummarizer from "./CustomSummarizer";
 
 /*
   NewsPulse main container for web (React)
@@ -82,7 +83,8 @@ function App() {
   }
 
   const [bookmarked, setBookmarked] = useState(() => loadBookmarks());
-  const [activeTab, setActiveTab] = useState('home'); // "home" | "bookmarks" | "settings"
+  // include summarizer tab
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'bookmarks' | 'summarizer' | 'settings'
 
   // On first mount: load all news (placeholder)
   useEffect(() => {
@@ -171,6 +173,12 @@ function App() {
           />
         )}
 
+        {activeTab === 'summarizer' && (
+          <div className="container" style={{ paddingTop: 28, paddingBottom: 12 }}>
+            <CustomSummarizer darkMode={darkMode} />
+          </div>
+        )}
+
         {activeTab === 'settings' && (
           <SettingsScreen
             onShowPreferences={() => setShowPreferences(true)}
@@ -197,6 +205,7 @@ function App() {
           setActiveTab(tab);
           setSelectedNewsId(null); // Close detail view when switching tabs
         }}
+        showSummarizer
       />
     </div>
   );
@@ -554,7 +563,7 @@ function BookmarkedArticles({ news, bookmarks, onSelect, setBookmarked, darkMode
 }
 
 // BOTTOM NAVIGATION BAR
-function BottomNavBar({ activeTab, setActiveTab }) {
+function BottomNavBar({ activeTab, setActiveTab, showSummarizer }) {
   return (
     <nav className="bottom-nav" style={{
       position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 35,
@@ -577,6 +586,14 @@ function BottomNavBar({ activeTab, setActiveTab }) {
         active={activeTab === "bookmarks"}
         onClick={() => setActiveTab('bookmarks')}
       />
+      {showSummarizer && (
+        <NavTab
+          icon="📝"
+          label="Summarize"
+          active={activeTab === "summarizer"}
+          onClick={() => setActiveTab('summarizer')}
+        />
+      )}
       <NavTab
         icon="⚙️"
         label="Settings"
@@ -735,7 +752,7 @@ function PreferencesModal({ selected, setSelected, onClose, allCategories }) {
   // [Onboarding/Preferences]
   //  PreferencesModal presents onboarding for category selection.
   //
-// Bookmarking, theme handling, and filtering are fully client-side with this scaffold.
+  // Bookmarking, theme handling, and filtering are fully client-side with this scaffold.
   //
   // Code written for modularity: each section is easily extractable to separate files.
 */
