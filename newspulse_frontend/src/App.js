@@ -60,11 +60,27 @@ function App() {
   const [allNews, setAllNews] = useState([]);
   const [displayedNews, setDisplayedNews] = useState([]);
 
-  const [bookmarked, setBookmarked] = useState(() => {
-    // Try to restore bookmarks from localStorage
-    const saved = localStorage.getItem('bookmarkedNews');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Persistent bookmark (localStorage) helpers
+  // PUBLIC_INTERFACE
+  function loadBookmarks() {
+    try {
+      const saved = localStorage.getItem('bookmarkedNews');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      // Stub: If localStorage isn't available or fails, use empty array (future: handle errors or server fallback)
+      return [];
+    }
+  }
+  // PUBLIC_INTERFACE
+  function saveBookmarks(bookmarks) {
+    try {
+      localStorage.setItem('bookmarkedNews', JSON.stringify(bookmarks));
+    } catch (e) {
+      // Stub: Ignore on error for now, can be expanded for backend/session fallback
+    }
+  }
+
+  const [bookmarked, setBookmarked] = useState(() => loadBookmarks());
   const [activeTab, setActiveTab] = useState('home'); // "home" | "bookmarks" | "settings"
 
   // On first mount: load all news (placeholder)
@@ -93,9 +109,9 @@ function App() {
     }
   }, [selectedCategories, allNews]);
 
-  // Persist bookmarks
+  // Persist bookmarks (via stub function)
   useEffect(() => {
-    localStorage.setItem('bookmarkedNews', JSON.stringify(bookmarked));
+    saveBookmarks(bookmarked);
   }, [bookmarked]);
 
   // Apply dark/light theme dynamically
