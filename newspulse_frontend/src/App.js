@@ -156,7 +156,7 @@ function App() {
             onBack={() => setSelectedNewsId(null)}
             bookmarked={bookmarked}
             setBookmarked={setBookmarked}
-            // AI summary UI placeholder within component
+            darkMode={darkMode} // pass darkMode prop for styling
           />
         )}
 
@@ -478,58 +478,8 @@ function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarke
   );
 }
 
-// ARTICLE DETAIL (+ AI SUMMARY UI placeholder)
-function ArticleDetail({ article, onBack, bookmarked, setBookmarked }) {
-  if (!article) return <div className="container">Article not found.</div>;
-  return (
-    <div className="container" style={{ paddingTop: 32, paddingBottom: 32 }}>
-      <button className="btn" onClick={onBack} style={{ marginBottom: 22 }}>← Back</button>
-      <h2 style={{ fontWeight: 700, fontSize: 26 }}>{article.title}</h2>
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888', marginBottom: 14 }}>
-        <span>{article.source}</span>
-        <span>{article.time}</span>
-        <button
-          className="btn"
-          aria-label={bookmarked.includes(article.id) ? "Remove Bookmark" : "Add Bookmark"}
-          onClick={() => {
-            setBookmarked(prev => prev.includes(article.id)
-              ? prev.filter(id => id !== article.id)
-              : [...prev, article.id]);
-          }}
-          style={{
-            background: bookmarked.includes(article.id) ? CUSTOM_COLORS.accent : CUSTOM_COLORS.primary,
-            color: '#fff',
-            marginLeft: 18,
-            borderRadius: 8,
-          }}>
-          {bookmarked.includes(article.id) ? "★ Bookmarked" : "☆ Bookmark"}
-        </button>
-      </div>
-      <img src={article.thumbnail} alt="Thumbnail" style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 9, marginBottom: 18 }} />
-      <div style={{ fontSize: 17, lineHeight: 1.6, marginBottom: 28, color: '#ccc' }}>
-        {article.content}
-      </div>
-
-      {/* AI SUMMARY (UI placeholder, real integration should fetch summary from backend/AI) */}
-      <div style={{
-        background: '#24293f',
-        borderRadius: 8,
-        boxShadow: '0 1px 7px rgba(32,32,60,0.10)',
-        padding: 18,
-        marginBottom: 16,
-        color: '#e2e9f7',
-      }}>
-        <b>AI Summary</b>
-        <div style={{ marginTop: 9 }}>
-          {/* Placeholder for AI-generated summary */}
-          <i style={{ color: '#FF5252' }}>[AI summary coming soon]</i>
-          <div>{article.summary}</div>
-        </div>
-      </div>
-      {/* Additional actions: share, save, etc. could be added here */}
-    </div>
-  );
-}
+// Externalize ArticleDetail as a separate modular component
+import ArticleDetail from "./ArticleDetail";
 
 // BOOKMARKED ARTICLES TAB
 function BookmarkedArticles({ news, bookmarks, onSelect, setBookmarked, darkMode }) {
