@@ -25,29 +25,10 @@ const CUSTOM_COLORS = {
   // Add more if needed
 };
 
+import { fetchNews } from "./newsApi";
+
 // --- MOCK DATA/PLACEHOLDERS (replace with API responses):
 const CATEGORIES = ['All', 'Technology', 'Politics', 'Health', 'Sports', 'Entertainment'];
-const MOCK_NEWS = [
-  {
-    id: '1',
-    title: "AI Transforms the News Industry",
-    source: "TechCrunch",
-    time: "5m ago",
-    thumbnail: "https://placehold.co/80x80/1A73E8/FFFFFF?text=AI",
-    content: "Full article text goes here. Lorem ipsum dolor sit amet...",
-    summary: "A brief AI summary would be placed here.",
-  },
-  {
-    id: '2',
-    title: "Elections 2024: Major Updates",
-    source: "BBC",
-    time: "10m ago",
-    thumbnail: "https://placehold.co/80x80/FF5252/FFFFFF?text=Vote",
-    content: "Full article text goes here. Lorem ipsum dolor sit amet...",
-    summary: "A brief AI summary would be placed here.",
-  },
-  // Add more mock headlines...
-];
 
 // ---- MAIN APP START ----
 
