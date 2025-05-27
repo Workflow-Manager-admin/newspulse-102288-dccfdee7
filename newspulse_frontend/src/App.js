@@ -67,31 +67,39 @@ function App() {
   // include summarizer tab
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'bookmarks' | 'summarizer' | 'settings'
 
-  // On first mount: load all news (placeholder)
-  useEffect(() => {
-    setAllNews(MOCK_NEWS);
-  }, []);
+  // Manage loading and error for fetching news
+  const [loadingNews, setLoadingNews] = useState(false);
+  const [newsError, setNewsError] = useState(null);
 
-  // Whenever selectedCategories or allNews changes, update displayedNews
+  // Fetch news from NewsAPI when selectedCategories changes, or at mount
   useEffect(() => {
-    if (!allNews || allNews.length === 0) {
+    let isActive = true;
+    async function load() {
+      setLoadingNews(true);
+      setNewsError(null);
       setDisplayedNews([]);
-      return;
+      // Use only the first selected category (API does not support multi categories at once)
+      const effectiveCat =
+        selectedCategories && selectedCategories.length > 0
+          ? (selectedCategories[0] === "All" ? "All" : selectedCategories[0])
+          : "All";
+      const { articles, error } = await fetchNews(effectiveCat);
+      if (!isActive) return;
+      setAllNews(articles || []);
+      setDisplayedNews(articles || []);
+      setNewsError(error);
+      setLoadingNews(false);
     }
-    // Filtering logic: 'All' returns all news
-    if (selectedCategories.includes('All')) {
-      setDisplayedNews(allNews);
-    } else {
-      // For mock data, match by title substring. Replace with category field if available
-      setDisplayedNews(
-        allNews.filter(article =>
-          selectedCategories.some(cat =>
-            article.title.toLowerCase().includes(cat.toLowerCase())
-          )
-        )
-      );
-    }
-  }, [selectedCategories, allNews]);
+    load();
+    return () => {
+      isActive = false;
+    };
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    // Retain any logic required for using filtered views if supporting more advanced filters later
+    setDisplayedNews(allNews);
+  }, [allNews]);
 
   // Persist bookmarks (via stub function)
   useEffect(() => {
@@ -131,6 +139,8 @@ function App() {
             bookmarked={bookmarked}
             setBookmarked={setBookmarked}
             darkMode={darkMode}
+            loading={loadingNews}
+            error={newsError}
           />
         )}
 
