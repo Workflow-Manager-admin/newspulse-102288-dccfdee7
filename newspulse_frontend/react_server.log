@@ -19,3 +19,23 @@ To create a production build, use npm run build.
 
 webpack compiled successfully
 Compiling...
+Failed to compile.
+
+[eslint] 
+src/App.js
+  Line 28:1:   Import in body of module; reorder to top  import/first
+  Line 72:16:  'MOCK_NEWS' is not defined                no-undef
+
+Search for the keywords to learn more about each error.
+WARNING in [eslint] 
+src/App.js
+  Line 28:10:  'fetchNews' is defined but never used  no-unused-vars
+
+ERROR in [eslint] 
+src/App.js
+  Line 28:1:   Import in body of module; reorder to top  import/first
+  Line 72:16:  'MOCK_NEWS' is not defined                no-undef
+
+Search for the keywords to learn more about each error.
+
+webpack compiled with 1 error and 1 warning
