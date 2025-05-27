@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ArticleDetail from "./ArticleDetail";
 import CustomSummarizer from "./CustomSummarizer";
+import { fetchNews } from "./newsApi";
 
 /*
   NewsPulse main container for web (React)
@@ -25,9 +26,7 @@ const CUSTOM_COLORS = {
   // Add more if needed
 };
 
-import { fetchNews } from "./newsApi";
-
-// --- MOCK DATA/PLACEHOLDERS (replace with API responses):
+// --- CATEGORIES:
 const CATEGORIES = ['All', 'Technology', 'Politics', 'Health', 'Sports', 'Entertainment'];
 
 // ---- MAIN APP START ----
@@ -39,7 +38,6 @@ function App() {
   const [selectedCategories, setSelectedCategories] = useState(['All']);
   const [selectedNewsId, setSelectedNewsId] = useState(null);
 
-  // Split to allNews (all articles) and displayedNews (filtered)
   const [allNews, setAllNews] = useState([]);
   const [displayedNews, setDisplayedNews] = useState([]);
 
@@ -50,7 +48,6 @@ function App() {
       const saved = localStorage.getItem('bookmarkedNews');
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      // Stub: If localStorage isn't available or fails, use empty array (future: handle errors or server fallback)
       return [];
     }
   }
@@ -59,26 +56,24 @@ function App() {
     try {
       localStorage.setItem('bookmarkedNews', JSON.stringify(bookmarks));
     } catch (e) {
-      // Stub: Ignore on error for now, can be expanded for backend/session fallback
+      // Ignore on error for now
     }
   }
 
   const [bookmarked, setBookmarked] = useState(() => loadBookmarks());
-  // include summarizer tab
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'bookmarks' | 'summarizer' | 'settings'
 
-  // Manage loading and error for fetching news
+  // Loading and error state for news fetching
   const [loadingNews, setLoadingNews] = useState(false);
   const [newsError, setNewsError] = useState(null);
 
-  // Fetch news from NewsAPI when selectedCategories changes, or at mount
+  // Fetch news on category change (or mount)
   useEffect(() => {
     let isActive = true;
     async function load() {
       setLoadingNews(true);
       setNewsError(null);
       setDisplayedNews([]);
-      // Use only the first selected category (API does not support multi categories at once)
       const effectiveCat =
         selectedCategories && selectedCategories.length > 0
           ? (selectedCategories[0] === "All" ? "All" : selectedCategories[0])
@@ -97,11 +92,10 @@ function App() {
   }, [selectedCategories]);
 
   useEffect(() => {
-    // Retain any logic required for using filtered views if supporting more advanced filters later
     setDisplayedNews(allNews);
   }, [allNews]);
 
-  // Persist bookmarks (via stub function)
+  // Persist bookmarks
   useEffect(() => {
     saveBookmarks(bookmarked);
   }, [bookmarked]);
@@ -150,7 +144,7 @@ function App() {
             onBack={() => setSelectedNewsId(null)}
             bookmarked={bookmarked}
             setBookmarked={setBookmarked}
-            darkMode={darkMode} // pass darkMode prop for styling
+            darkMode={darkMode}
           />
         )}
 
@@ -173,7 +167,6 @@ function App() {
         {activeTab === 'settings' && (
           <SettingsScreen
             onShowPreferences={() => setShowPreferences(true)}
-            // Push notification setup UI placeholder here
             darkMode={darkMode}
           />
         )}
@@ -194,7 +187,7 @@ function App() {
         activeTab={activeTab}
         setActiveTab={tab => {
           setActiveTab(tab);
-          setSelectedNewsId(null); // Close detail view when switching tabs
+          setSelectedNewsId(null);
         }}
         showSummarizer
       />
@@ -294,20 +287,17 @@ function CategoryFilterBar({ categories, selected, setSelected, darkMode }) {
 // MAIN NEWS FEED
 /**
  * NewsFeed: Renders the supplied (already filtered) list of articles.
- * Filtering is done by parent component.
+ * Handles loading, error, and empty state. Filtering is done by parent.
  */
 function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarked, darkMode, loading, error }) {
   const [expandedId, setExpandedId] = React.useState(null);
   const [loadingSummaryId, setLoadingSummaryId] = React.useState(null);
   const [summaries, setSummaries] = React.useState({});
 
-  // Filtering is now done in parent, so just use news prop
   const filteredNews = news;
 
-  // Stubbed summary fetch, replace with real API call in future
   const fetchSummary = async (article) => {
     setLoadingSummaryId(article.id);
-    // Simulate API delay
     return new Promise(resolve => {
       setTimeout(() => {
         resolve("📝 [AI SUMMARY]: " + (article.summary || "A short summary will appear here from the AI service."));
@@ -503,8 +493,6 @@ function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarke
           )}
         </ul>
       )}
-      {/* Placeholder UI: Info banner if this is API-powered */}
-      {/* <div className="info-banner">Powered by News API (API integration coming soon!)</div> */}
     </div>
   );
 }
@@ -669,7 +657,6 @@ function SettingsScreen({ onShowPreferences, darkMode }) {
         }}>
           <b>Push Notifications</b>
           <div style={{ fontSize: 14, color: '#bbc' }}>
-            {/* Placeholder: implement real notification permission checking/enabling */}
             Push notification support is coming soon!
           </div>
           <button className="btn" disabled style={{ marginTop: 7, background: CUSTOM_COLORS.accent }}>
@@ -683,7 +670,6 @@ function SettingsScreen({ onShowPreferences, darkMode }) {
 
 // PREFERENCES MODAL FOR CATEGORY SELECTION
 function PreferencesModal({ selected, setSelected, onClose, allCategories }) {
-  // Onboarding-style UI for category preferences
   return (
     <div style={{
       position: 'fixed', inset: 0,
@@ -754,28 +740,5 @@ function PreferencesModal({ selected, setSelected, onClose, allCategories }) {
     </div>
   );
 }
-
-// --------------------
-// README-STYLE COMMENTARY ON PLACEHOLDERS
-// --------------------
-/*
-  // [AI Article Summarization]
-  //  Placeholder UI for AI summary is present in ArticleDetail.
-  //  Real implementation should invoke backend/AI API to fetch summary for a given article.
-  //
-  // [Push Notifications]
-  //  Settings UI includes a placeholder to enable/disable notifications.
-  //  In production, integrate with service worker + backend or push gateway.
-  //
-  // [Live News Feed]
-  //  NewsFeed uses MOCK_NEWS; real implementation should call a News API or internal aggregator.
-  //
-  // [Onboarding/Preferences]
-  //  PreferencesModal presents onboarding for category selection.
-  //
-  // Bookmarking, theme handling, and filtering are fully client-side with this scaffold.
-  //
-  // Code written for modularity: each section is easily extractable to separate files.
-*/
 
 export default App;
