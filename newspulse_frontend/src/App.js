@@ -55,7 +55,11 @@ function App() {
   const [showPreferences, setShowPreferences] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState(['All']);
   const [selectedNewsId, setSelectedNewsId] = useState(null);
-  const [newsFeed, setNewsFeed] = useState([]); // Would be loaded from API
+
+  // Split to allNews (all articles) and displayedNews (filtered)
+  const [allNews, setAllNews] = useState([]);
+  const [displayedNews, setDisplayedNews] = useState([]);
+
   const [bookmarked, setBookmarked] = useState(() => {
     // Try to restore bookmarks from localStorage
     const saved = localStorage.getItem('bookmarkedNews');
@@ -63,11 +67,31 @@ function App() {
   });
   const [activeTab, setActiveTab] = useState('home'); // "home" | "bookmarks" | "settings"
 
-  // On first mount: load news (placeholder: use mock data)
+  // On first mount: load all news (placeholder)
   useEffect(() => {
-    // TODO: Replace with API call to News API
-    setNewsFeed(MOCK_NEWS);
+    setAllNews(MOCK_NEWS);
   }, []);
+
+  // Whenever selectedCategories or allNews changes, update displayedNews
+  useEffect(() => {
+    if (!allNews || allNews.length === 0) {
+      setDisplayedNews([]);
+      return;
+    }
+    // Filtering logic: 'All' returns all news
+    if (selectedCategories.includes('All')) {
+      setDisplayedNews(allNews);
+    } else {
+      // For mock data, match by title substring. Replace with category field if available
+      setDisplayedNews(
+        allNews.filter(article =>
+          selectedCategories.some(cat =>
+            article.title.toLowerCase().includes(cat.toLowerCase())
+          )
+        )
+      );
+    }
+  }, [selectedCategories, allNews]);
 
   // Persist bookmarks
   useEffect(() => {
@@ -112,7 +136,6 @@ function App() {
 
         {activeTab === 'home' && selectedNewsId && (
           <ArticleDetail
-            // Use allNews to allow showing details even if filtered out of displayedNews
             article={allNews.find(n => n.id === selectedNewsId)}
             onBack={() => setSelectedNewsId(null)}
             bookmarked={bookmarked}
@@ -253,10 +276,6 @@ function CategoryFilterBar({ categories, selected, setSelected, darkMode }) {
 
 // MAIN NEWS FEED
 /**
- * NewsFeed now supports expandable article cards with inline AI summary.
- * Handles 'Summarize' button for each card, showing full content & summary.
- */
-/**
  * NewsFeed: Renders the supplied (already filtered) list of articles.
  * Filtering is done by parent component.
  */
@@ -265,7 +284,7 @@ function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarke
   const [loadingSummaryId, setLoadingSummaryId] = React.useState(null);
   const [summaries, setSummaries] = React.useState({});
 
-  // (Filtering is now done in parent, so just use news prop)
+  // Filtering is now done in parent, so just use news prop
   const filteredNews = news;
 
   // Stubbed summary fetch, replace with real API call in future
