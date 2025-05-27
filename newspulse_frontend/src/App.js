@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import ArticleDetail from "./ArticleDetail";
 
 /*
   NewsPulse main container for web (React)
