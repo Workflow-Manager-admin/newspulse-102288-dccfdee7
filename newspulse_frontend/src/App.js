@@ -479,9 +479,6 @@ function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarke
   );
 }
 
-// Externalize ArticleDetail as a separate modular component
-import ArticleDetail from "./ArticleDetail";
-
 // BOOKMARKED ARTICLES TAB
 function BookmarkedArticles({ news, bookmarks, onSelect, setBookmarked, darkMode }) {
   const bookmarkedNews = news.filter(article => bookmarks.includes(article.id));

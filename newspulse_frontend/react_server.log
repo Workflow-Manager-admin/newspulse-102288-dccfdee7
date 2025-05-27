@@ -106,3 +106,6 @@ src/App.js
   Line 483:7:  Parsing error: Identifier 'ArticleDetail' has already been declared. (483:7)
 
 webpack compiled with 2 errors
+Compiling...
+Compiled successfully!
+webpack compiled successfully
