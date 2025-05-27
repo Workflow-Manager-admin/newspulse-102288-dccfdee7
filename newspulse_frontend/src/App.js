@@ -296,7 +296,7 @@ function CategoryFilterBar({ categories, selected, setSelected, darkMode }) {
  * NewsFeed: Renders the supplied (already filtered) list of articles.
  * Filtering is done by parent component.
  */
-function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarked, darkMode }) {
+function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarked, darkMode, loading, error }) {
   const [expandedId, setExpandedId] = React.useState(null);
   const [loadingSummaryId, setLoadingSummaryId] = React.useState(null);
   const [summaries, setSummaries] = React.useState({});
@@ -326,153 +326,183 @@ function NewsFeed({ news, selectedCategories, onSelect, bookmarked, setBookmarke
 
   return (
     <div className="container">
-      <ul style={{ listStyle: 'none', padding: 0, margin: '24px 0' }}>
-        {filteredNews.map(article => {
-          const isExpanded = expandedId === article.id;
-          return (
-            <li key={article.id} style={{
-              marginBottom: 24,
-              background: darkMode ? '#23252b' : '#fff',
-              borderRadius: 14,
-              boxShadow: darkMode
-                ? '0 2px 12px rgba(20,20,30,0.25)'
-                : '0 1px 7px rgba(32,32,42,0.09)',
-              display: 'flex',
-              flexDirection: 'column',
-              cursor: isExpanded ? 'default' : 'pointer',
-              padding: 0,
-              border: '1px solid #25293608',
-              transition: 'box-shadow 0.18s'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center' }} onClick={() => !isExpanded && setExpandedId(article.id)}>
-                <img src={article.thumbnail}
-                     alt="Thumbnail"
-                     style={{
-                       width: 78,
-                       height: 78,
-                       objectFit: 'cover',
-                       borderTopLeftRadius: 14,
-                       borderBottomLeftRadius: 14,
-                     }}
-                />
-                <div style={{ flex: 1, padding: 14, minWidth: 0 }}>
-                  <h3
-                    style={{
-                      margin: '0 0 8px 0',
-                      fontSize: 19,
-                      color: darkMode ? '#fff' : '#111',
-                      fontWeight: 600,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                    }}>
-                    {article.title}
-                  </h3>
-                  <div style={{ color: darkMode ? CUSTOM_COLORS.secondary : '#424a', fontSize: 13, display: 'flex', gap: 8 }}>
-                    <span>{article.source}</span>
-                    <span>•</span>
-                    <span>{article.time}</span>
-                  </div>
-                </div>
-                <button
-                  className="btn"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setBookmarked(prev => prev.includes(article.id)
-                      ? prev.filter(id => id !== article.id)
-                      : [...prev, article.id]
-                    );
-                  }}
-                  style={{
-                    background: bookmarked.includes(article.id) ? CUSTOM_COLORS.accent : 'transparent',
-                    color: bookmarked.includes(article.id) ? '#fff' : (darkMode ? '#fff' : '#333'),
-                    boxShadow: 'none',
-                    border: 'none',
-                    borderRight: '1px solid transparent',
-                    borderRadius: '50%',
-                    width: 34,
-                    height: 34,
-                    fontSize: 18,
-                    marginRight: 10,
-                    cursor: 'pointer',
-                  }}
-                  aria-label={bookmarked.includes(article.id) ? "Remove Bookmark" : "Add Bookmark"}
-                >{bookmarked.includes(article.id) ? '★' : '☆'}</button>
-                {/* Summarize Button */}
-                <button
-                  className="btn"
-                  style={{
-                    background: CUSTOM_COLORS.primary,
-                    color: '#fff',
-                    fontWeight: 500,
-                    marginRight: 14,
-                    marginLeft: 8,
-                    minWidth: 80,
-                  }}
-                  tabIndex={0}
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await handleSummarize(article);
-                  }}
-                  aria-label={`Summarize article ${article.title}`}>
-                  {isExpanded
-                    ? (loadingSummaryId === article.id ? "Summarizing..." : "Summarized")
-                    : (loadingSummaryId === article.id ? "Summarizing..." : "Summarize")
-                  }
-                </button>
-              </div>
-              {isExpanded && (
-                <div style={{
-                  width: '100%',
-                  padding: '18px 24px 6px 24px',
-                  borderTop: darkMode ? '1px solid #232536' : '1px solid #e2e7f3',
-                  background: darkMode ? '#1a1d2f' : '#f5f8fe',
-                  borderBottomLeftRadius: 14,
-                  borderBottomRightRadius: 14,
-                  marginTop: 3
-                }}>
-                  {/* Full Article Content */}
-                  <div style={{ color: darkMode ? '#ccc' : '#1a1932', fontSize: 15, marginBottom: 12 }}>
-                    {article.content}
-                  </div>
-                  {/* Inline AI Summary Display */}
-                  <div style={{
-                    background: darkMode ? '#23294b' : '#eceeff',
-                    borderRadius: 8,
-                    color: darkMode ? '#e2e9f7' : '#24293f',
-                    boxShadow: '0 1px 5px rgba(32,32,60,0.06)',
-                    padding: '10px 13px',
-                    fontSize: 15,
-                    marginBottom: 5,
-                    minHeight: 34
-                  }}>
-                    <b>AI Summary:</b>
-                    <div style={{ marginTop: 7, minHeight: 16 }}>
-                      {loadingSummaryId === article.id
-                        ? <span><i>Generating summary...</i></span>
-                        : summaries[article.id] 
-                          ? summaries[article.id]
-                          : <span style={{ color: '#FF5252' }}>[Summary will appear here after clicking Summarize]</span>
-                      }
+      {loading && (
+        <div style={{
+          color: darkMode ? "#fff" : "#111",
+          textAlign: "center",
+          padding: "64px 0 38px 0",
+          fontSize: 20,
+          letterSpacing: 0.2
+        }}>
+          <span role="status" style={{ fontSize: 34 }}>⏳</span>
+          <div>Loading latest news…</div>
+        </div>
+      )}
+      {error && !loading && (
+        <div style={{
+          color: "#F44",
+          background: darkMode ? "#221829" : "#ffeaea",
+          textAlign: "center",
+          borderRadius: 10,
+          padding: "42px 14px",
+          margin: "24px auto",
+          fontWeight: 600,
+          maxWidth: 480,
+          boxShadow: darkMode ? "0 4px 22px #09052128" : "0 1px 6px #c2232348"
+        }}>
+          <span style={{ fontSize: 29, marginBottom: 9, display: "inline-block" }}>⚠️</span><br />
+          {error}
+        </div>
+      )}
+      {!loading && !error && (
+        <ul style={{ listStyle: 'none', padding: 0, margin: '24px 0' }}>
+          {filteredNews.map(article => {
+            const isExpanded = expandedId === article.id;
+            return (
+              <li key={article.id} style={{
+                marginBottom: 24,
+                background: darkMode ? '#23252b' : '#fff',
+                borderRadius: 14,
+                boxShadow: darkMode
+                  ? '0 2px 12px rgba(20,20,30,0.25)'
+                  : '0 1px 7px rgba(32,32,42,0.09)',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: isExpanded ? 'default' : 'pointer',
+                padding: 0,
+                border: '1px solid #25293608',
+                transition: 'box-shadow 0.18s'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center' }} onClick={() => !isExpanded && setExpandedId(article.id)}>
+                  <img src={article.thumbnail}
+                       alt="Thumbnail"
+                       style={{
+                         width: 78,
+                         height: 78,
+                         objectFit: 'cover',
+                         borderTopLeftRadius: 14,
+                         borderBottomLeftRadius: 14,
+                       }}
+                  />
+                  <div style={{ flex: 1, padding: 14, minWidth: 0 }}>
+                    <h3
+                      style={{
+                        margin: '0 0 8px 0',
+                        fontSize: 19,
+                        color: darkMode ? '#fff' : '#111',
+                        fontWeight: 600,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                      }}>
+                      {article.title}
+                    </h3>
+                    <div style={{ color: darkMode ? CUSTOM_COLORS.secondary : '#424a', fontSize: 13, display: 'flex', gap: 8 }}>
+                      <span>{article.source}</span>
+                      <span>•</span>
+                      <span>{article.time}</span>
                     </div>
                   </div>
                   <button
                     className="btn"
-                    style={{ margin: '9px 0 8px 0', background: '#444', color: '#fff' }}
-                    onClick={() => setExpandedId(null)}
-                  >Close</button>
+                    onClick={e => {
+                      e.stopPropagation();
+                      setBookmarked(prev => prev.includes(article.id)
+                        ? prev.filter(id => id !== article.id)
+                        : [...prev, article.id]
+                      );
+                    }}
+                    style={{
+                      background: bookmarked.includes(article.id) ? CUSTOM_COLORS.accent : 'transparent',
+                      color: bookmarked.includes(article.id) ? '#fff' : (darkMode ? '#fff' : '#333'),
+                      boxShadow: 'none',
+                      border: 'none',
+                      borderRight: '1px solid transparent',
+                      borderRadius: '50%',
+                      width: 34,
+                      height: 34,
+                      fontSize: 18,
+                      marginRight: 10,
+                      cursor: 'pointer',
+                    }}
+                    aria-label={bookmarked.includes(article.id) ? "Remove Bookmark" : "Add Bookmark"}
+                  >{bookmarked.includes(article.id) ? '★' : '☆'}</button>
+                  {/* Summarize Button */}
+                  <button
+                    className="btn"
+                    style={{
+                      background: CUSTOM_COLORS.primary,
+                      color: '#fff',
+                      fontWeight: 500,
+                      marginRight: 14,
+                      marginLeft: 8,
+                      minWidth: 80,
+                    }}
+                    tabIndex={0}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await handleSummarize(article);
+                    }}
+                    aria-label={`Summarize article ${article.title}`}>
+                    {isExpanded
+                      ? (loadingSummaryId === article.id ? "Summarizing..." : "Summarized")
+                      : (loadingSummaryId === article.id ? "Summarizing..." : "Summarize")
+                    }
+                  </button>
                 </div>
-              )}
+                {isExpanded && (
+                  <div style={{
+                    width: '100%',
+                    padding: '18px 24px 6px 24px',
+                    borderTop: darkMode ? '1px solid #232536' : '1px solid #e2e7f3',
+                    background: darkMode ? '#1a1d2f' : '#f5f8fe',
+                    borderBottomLeftRadius: 14,
+                    borderBottomRightRadius: 14,
+                    marginTop: 3
+                  }}>
+                    {/* Full Article Content */}
+                    <div style={{ color: darkMode ? '#ccc' : '#1a1932', fontSize: 15, marginBottom: 12 }}>
+                      {article.content}
+                    </div>
+                    {/* Inline AI Summary Display */}
+                    <div style={{
+                      background: darkMode ? '#23294b' : '#eceeff',
+                      borderRadius: 8,
+                      color: darkMode ? '#e2e9f7' : '#24293f',
+                      boxShadow: '0 1px 5px rgba(32,32,60,0.06)',
+                      padding: '10px 13px',
+                      fontSize: 15,
+                      marginBottom: 5,
+                      minHeight: 34
+                    }}>
+                      <b>AI Summary:</b>
+                      <div style={{ marginTop: 7, minHeight: 16 }}>
+                        {loadingSummaryId === article.id
+                          ? <span><i>Generating summary...</i></span>
+                          : summaries[article.id] 
+                            ? summaries[article.id]
+                            : <span style={{ color: '#FF5252' }}>[Summary will appear here after clicking Summarize]</span>
+                        }
+                      </div>
+                    </div>
+                    <button
+                      className="btn"
+                      style={{ margin: '9px 0 8px 0', background: '#444', color: '#fff' }}
+                      onClick={() => setExpandedId(null)}
+                    >Close</button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+          {filteredNews.length === 0 && (
+            <li style={{
+              color: darkMode ? CUSTOM_COLORS.secondary : '#333',
+              textAlign: 'center', padding: 52
+            }}>
+              No articles found for selected categories.
             </li>
-          );
-        })}
-        {filteredNews.length === 0 && (
-          <li style={{
-            color: darkMode ? CUSTOM_COLORS.secondary : '#333',
-            textAlign: 'center', padding: 52
-          }}>
-            No articles found for selected categories.
-          </li>
-        )}
-      </ul>
+          )}
+        </ul>
+      )}
       {/* Placeholder UI: Info banner if this is API-powered */}
       {/* <div className="info-banner">Powered by News API (API integration coming soon!)</div> */}
     </div>
